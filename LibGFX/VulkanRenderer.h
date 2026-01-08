@@ -9,7 +9,9 @@ namespace LibGFX {
 		VulkanRenderer(GLFWwindow* targetWindow);
 		~VulkanRenderer();
 
-		void initialize();
+		static VkApplicationInfo defaultAppInfo();
+
+		void initialize(VkApplicationInfo appInfo);
 
 	private:
 		VkInstance m_instance;

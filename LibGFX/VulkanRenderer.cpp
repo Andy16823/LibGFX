@@ -14,6 +14,18 @@ LibGFX::VulkanRenderer::~VulkanRenderer()
 	m_targetWindow = nullptr;
 }
 
+VkApplicationInfo VulkanRenderer::defaultAppInfo()
+{
+	VkApplicationInfo appInfo = {};
+	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	appInfo.pApplicationName = "LibGFX";
+	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+	appInfo.pEngineName = "LibGFX";
+	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+	appInfo.apiVersion = VK_API_VERSION_1_1;
+	return appInfo;
+}
+
 bool VulkanRenderer::hasRequiredLayers(const std::vector<const char*> requiredLayers)
 {
 	// Get the layers count
@@ -66,7 +78,7 @@ bool VulkanRenderer::hasRequiredExtensions(const std::vector<const char*>* requi
 	return true;
 }
 
-void VulkanRenderer::initialize()
+void VulkanRenderer::initialize(VkApplicationInfo appInfo)
 {
 	std::cout << "Initializing Vulkan Renderer..." << std::endl;
 	std::cout << "Creating Validation Layers..." << std::endl;
@@ -76,15 +88,6 @@ void VulkanRenderer::initialize()
 	if (!this->hasRequiredLayers(layers)) {
 		throw std::runtime_error("Required validation layers not available");
 	}
-
-	// Create application info
-	VkApplicationInfo appInfo = {};
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "LibGFX";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.pEngineName = "LibGFX";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_1;
 
 	// Create instance info
 	VkInstanceCreateInfo createInfo = {};
