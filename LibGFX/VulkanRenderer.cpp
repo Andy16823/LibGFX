@@ -20,6 +20,7 @@ void VulkanRenderer::dispose()
 {
 	if (m_device != VK_NULL_HANDLE) {
 		vkDeviceWaitIdle(m_device);
+		vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 		vkDestroyDevice(m_device, nullptr);
 		vkDestroyInstance(m_instance, nullptr);
 	}
