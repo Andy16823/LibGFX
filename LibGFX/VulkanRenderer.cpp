@@ -108,7 +108,7 @@ void VulkanRenderer::initialize()
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledLayerCount = 1;
-	createInfo.ppEnabledExtensionNames = layers.data();
+	createInfo.ppEnabledLayerNames = layers.data();
 
 	if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to initialize Vulkan");
