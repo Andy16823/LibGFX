@@ -16,6 +16,14 @@ LibGFX::VulkanRenderer::~VulkanRenderer()
 	m_targetWindow = nullptr;
 }
 
+void VulkanRenderer::dispose()
+{
+	if (m_device != VK_NULL_HANDLE) {
+		vkDeviceWaitIdle(m_device);
+		vkDestroyInstance(m_instance, nullptr);
+	}
+}
+
 LibGFX::SwapChainSupportDetails VulkanRenderer::querySwapChainSupport(VkPhysicalDevice device)
 {
 	SwapChainSupportDetails details;

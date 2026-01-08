@@ -14,6 +14,7 @@ namespace LibGFX {
 		static VkApplicationInfo defaultAppInfo();
 
 		void initialize(VkApplicationInfo appInfo);
+		void dispose();
 
 	private:
 		VkInstance m_instance;
