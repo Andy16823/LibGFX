@@ -3,9 +3,9 @@
 #include "LibGFX.h"
 
 using namespace std;
+using namespace LibGFX;
 
-
-GLFWwindow* CreateContext(int width, int height, const char* title)
+GLFWwindow* GFX::CreateContext(int width, int height, const char* title)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
