@@ -22,6 +22,7 @@ namespace LibGFX {
 		
 		VkFormat selectSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 		DepthBuffer createDepthBuffer(VkExtent2D extent, VkFormat format);
+		void destroyDepthBuffer(DepthBuffer& depthBuffer);
 
 
 		// Getters

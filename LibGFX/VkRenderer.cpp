@@ -16,6 +16,13 @@ LibGFX::VkRenderer::~VkRenderer()
 	m_targetWindow = nullptr;
 }
 
+void VkRenderer::destroyDepthBuffer(DepthBuffer& depthBuffer)
+{
+	vkDestroyImageView(m_device, depthBuffer.imageView, nullptr);
+	vkDestroyImage(m_device, depthBuffer.image, nullptr);
+	vkFreeMemory(m_device, depthBuffer.memory, nullptr);
+}
+
 VkFormat VkRenderer::findSuitableDepthFormat()
 {
 	auto format = selectSupportedFormat(
