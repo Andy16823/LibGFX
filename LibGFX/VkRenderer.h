@@ -5,24 +5,39 @@
 #include "QueueFamilyIndices.h"
 #include "SwapchainSupportDetails.h"
 #include "SwapchainInfo.h"
+#include "DepthBuffer.h"
 
 namespace LibGFX {
-	class VulkanRenderer {
+	class VkRenderer {
 	public:
-		VulkanRenderer(GLFWwindow* targetWindow);
-		~VulkanRenderer();
+		VkRenderer(GLFWwindow* targetWindow);
+		~VkRenderer();
 
 		static VkApplicationInfo defaultAppInfo();
 
 		void initialize(VkApplicationInfo appInfo);
+		void dispose();
 		SwapchainInfo createSwapChain(VkPresentModeKHR desiredPresentMode);
 		void destroySwapChain(SwapchainInfo& swapchainInfo);
-		void dispose();
+		
+		VkFormat selectSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		DepthBuffer createDepthBuffer(VkExtent2D extent, VkFormat format);
+
+
+		// Getters
+		VkInstance getInstance() const { return m_instance; }
+		VkSurfaceKHR getSurface() const { return m_surface; }
+		VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
+		VkDevice getDevice() const { return m_device; }
+		VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
+		VkQueue getPresentQueue() const { return m_presentQueue; }
 
 		// Public Helpers
 		bool isPresentModeAvailable(VkPresentModeKHR presentMode);
 		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
-
+		static uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		static VkImage createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory);
+		VkFormat findSuitableDepthFormat();
 
 	private:
 		VkInstance m_instance;
@@ -44,6 +59,9 @@ namespace LibGFX {
 		// Swapchain helpers
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkExtent2D chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+		// Depth buffer helpers
+		
 
 		GLFWwindow* m_targetWindow;
 	};

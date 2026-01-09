@@ -4,7 +4,7 @@
 add_library(LibGFX STATIC
     LibGFX.cpp
     LibGFX.h
- "VulkanRenderer.h" "VulkanRenderer.cpp" "QueueFamilyIndices.h"  "SwapChainSupportDetails.h" "SwapchainInfo.h" )
+ "VkRenderer.h" "VkRenderer.cpp" "QueueFamilyIndices.h"  "SwapChainSupportDetails.h" "SwapchainInfo.h"  "DepthBuffer.h")
 
 # GLFW mit der Library linken
 target_link_libraries(LibGFX 

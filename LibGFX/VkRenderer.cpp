@@ -1,4 +1,4 @@
-#include "VulkanRenderer.h"
+#include "VkRenderer.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <array>
@@ -6,17 +6,122 @@
 
 using namespace LibGFX;
 
-VulkanRenderer::VulkanRenderer(GLFWwindow* targetWindow)
+VkRenderer::VkRenderer(GLFWwindow* targetWindow)
 {
 	m_targetWindow = targetWindow;
 }
 
-LibGFX::VulkanRenderer::~VulkanRenderer()
+LibGFX::VkRenderer::~VkRenderer()
 {
 	m_targetWindow = nullptr;
 }
 
-void VulkanRenderer::destroySwapChain(SwapchainInfo& swapchainInfo)
+VkFormat VkRenderer::findSuitableDepthFormat()
+{
+	auto format = selectSupportedFormat(
+		{ VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	return format;
+}
+
+VkFormat VkRenderer::selectSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+{
+	for (VkFormat format : candidates) {
+		VkFormatProperties props;
+		vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &props);
+
+		if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+			return format;
+		}
+		else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+			return format;
+		}
+	}
+	return VK_FORMAT_UNDEFINED;
+}
+
+uint32_t VkRenderer::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+	throw std::runtime_error("Failed to find suitable memory type");
+}
+
+VkImage VkRenderer::createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
+{
+	VkImageCreateInfo imageInfo = {};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = width;
+	imageInfo.extent.height = height;
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = 1;
+	imageInfo.arrayLayers = 1;
+	imageInfo.format = format;
+	imageInfo.tiling = tiling;
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.usage = usage;
+	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	VkImage image;
+	if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create image");
+	}
+
+	// Allocate memory for the image
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(device, &allocInfo, nullptr, imageMemory) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image memory");
+	}
+
+	vkBindImageMemory(device, image, *imageMemory, 0);
+
+	return image;
+}
+
+LibGFX::DepthBuffer VkRenderer::createDepthBuffer(VkExtent2D extent, VkFormat format)
+{
+	if (format == VK_FORMAT_UNDEFINED) {
+		throw std::runtime_error("Failed to find supported depth format");
+	}
+
+	// Create depth image
+	VkDeviceMemory depthImageMemory;
+	VkImage depthImage = createImage(
+		m_physicalDevice,
+		m_device,
+		extent.width,
+		extent.height,
+		format,
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&depthImageMemory);
+
+	// Create depth image view TODO: CREATE THIS NEXT!
+
+
+
+	DepthBuffer depthBuffer = {};
+	depthBuffer.format = format;
+}
+
+void VkRenderer::destroySwapChain(SwapchainInfo& swapchainInfo)
 {
 	for (auto imageView : swapchainInfo.imageViews) {
 		vkDestroyImageView(m_device, imageView, nullptr);
@@ -24,7 +129,7 @@ void VulkanRenderer::destroySwapChain(SwapchainInfo& swapchainInfo)
 	vkDestroySwapchainKHR(m_device, swapchainInfo.swapchain, nullptr);
 }
 
-VkImageView VulkanRenderer::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
+VkImageView VkRenderer::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
 {
 	VkImageViewCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -49,7 +154,7 @@ VkImageView VulkanRenderer::createImageView(VkDevice device, VkImage image, VkFo
 	return imageView;
 }
 
-VkExtent2D VulkanRenderer::chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D VkRenderer::chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
 	if (capabilities.currentExtent.width != UINT32_MAX) {
 		return capabilities.currentExtent;
@@ -67,7 +172,7 @@ VkExtent2D VulkanRenderer::chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR&
 	return actualExtent;
 }
 
-bool VulkanRenderer::isPresentModeAvailable(VkPresentModeKHR presentMode)
+bool VkRenderer::isPresentModeAvailable(VkPresentModeKHR presentMode)
 {
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice);
 	for (const auto& availablePresentMode : swapChainSupport.presentModes) {
@@ -78,7 +183,7 @@ bool VulkanRenderer::isPresentModeAvailable(VkPresentModeKHR presentMode)
 	return false;
 }
 
-VkSurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR VkRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
 	if(availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
 		return { VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
@@ -96,7 +201,7 @@ VkSurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(const std::vector<VkS
 	return availableFormats[0];
 }
 
-SwapchainInfo VulkanRenderer::createSwapChain(VkPresentModeKHR desiredPresentMode)
+SwapchainInfo VkRenderer::createSwapChain(VkPresentModeKHR desiredPresentMode)
 {
 	// Check if desired present mode is available
 	if (!this->isPresentModeAvailable(desiredPresentMode)) {
@@ -170,7 +275,7 @@ SwapchainInfo VulkanRenderer::createSwapChain(VkPresentModeKHR desiredPresentMod
 	return swapchainInfo;
 }
 
-void VulkanRenderer::dispose()
+void VkRenderer::dispose()
 {
 	if (m_device != VK_NULL_HANDLE) {
 		vkDeviceWaitIdle(m_device);
@@ -180,7 +285,7 @@ void VulkanRenderer::dispose()
 	}
 }
 
-LibGFX::SwapChainSupportDetails VulkanRenderer::querySwapChainSupport(VkPhysicalDevice device)
+LibGFX::SwapChainSupportDetails VkRenderer::querySwapChainSupport(VkPhysicalDevice device)
 {
 	SwapChainSupportDetails details;
 
@@ -203,7 +308,7 @@ LibGFX::SwapChainSupportDetails VulkanRenderer::querySwapChainSupport(VkPhysical
 	return details;
 }
 
-bool VulkanRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
+bool VkRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
 {
 	uint32_t extensionCount;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -230,7 +335,7 @@ bool VulkanRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device, const 
 	return true;
 }
 
-LibGFX::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalDevice device)
+LibGFX::QueueFamilyIndices VkRenderer::findQueueFamilies(VkPhysicalDevice device)
 {
 	QueueFamilyIndices indices;
 
@@ -261,7 +366,7 @@ LibGFX::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalDevice de
 	return indices;
 }
 
-bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
+bool VkRenderer::isDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
 {
 	// Check for required features
 	VkPhysicalDeviceFeatures deviceFeatures;
@@ -281,7 +386,7 @@ bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device, const std::vector
 	return indices.isValid() && extensionsSupported && swapChainAdequate && deviceFeatures.samplerAnisotropy;
 }
 
-VkPhysicalDevice VulkanRenderer::selectPhysicalDevice(const std::vector<const char*> deviceExtensions)
+VkPhysicalDevice VkRenderer::selectPhysicalDevice(const std::vector<const char*> deviceExtensions)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
@@ -302,7 +407,7 @@ VkPhysicalDevice VulkanRenderer::selectPhysicalDevice(const std::vector<const ch
 	return VK_NULL_HANDLE;
 }
 
-VkApplicationInfo VulkanRenderer::defaultAppInfo()
+VkApplicationInfo VkRenderer::defaultAppInfo()
 {
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -314,7 +419,7 @@ VkApplicationInfo VulkanRenderer::defaultAppInfo()
 	return appInfo;
 }
 
-bool VulkanRenderer::hasRequiredLayers(const std::vector<const char*> requiredLayers)
+bool VkRenderer::hasRequiredLayers(const std::vector<const char*> requiredLayers)
 {
 	// Get the layers count
 	uint32_t layerCount;
@@ -340,7 +445,7 @@ bool VulkanRenderer::hasRequiredLayers(const std::vector<const char*> requiredLa
 	return true;
 }
 
-bool VulkanRenderer::hasRequiredExtensions(const std::vector<const char*>* requiredExtensions)
+bool VkRenderer::hasRequiredExtensions(const std::vector<const char*>* requiredExtensions)
 {
 	// Get the available extensions count
 	uint32_t extensionCount = 0;
@@ -366,7 +471,7 @@ bool VulkanRenderer::hasRequiredExtensions(const std::vector<const char*>* requi
 	return true;
 }
 
-void VulkanRenderer::initialize(VkApplicationInfo appInfo)
+void VkRenderer::initialize(VkApplicationInfo appInfo)
 {
 	std::cout << "Initializing Vulkan Renderer..." << std::endl;
 	std::cout << "Creating Validation Layers..." << std::endl;
