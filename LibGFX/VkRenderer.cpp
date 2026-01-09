@@ -16,6 +16,26 @@ LibGFX::VkRenderer::~VkRenderer()
 	m_targetWindow = nullptr;
 }
 
+VkRect2D VkRenderer::createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent)
+{
+	VkRect2D scissor = {};
+	scissor.offset = { offsetX, offsetY };
+	scissor.extent = extent;
+	return scissor;
+}
+
+VkViewport VkRenderer::createViewport(float x, float y, VkExtent2D extent, float minDepth /*= 0.0f*/, float maxDepth /*= 1.0f*/)
+{
+	VkViewport viewport = {};
+	viewport.x = x;
+	viewport.y = y;
+	viewport.width = static_cast<float>(extent.width);
+	viewport.height = static_cast<float>(extent.height);
+	viewport.minDepth = minDepth;
+	viewport.maxDepth = maxDepth;
+	return viewport;
+}
+
 VkShaderModule VkRenderer::createShaderModule(const std::vector<char>& code)
 {
 	VkShaderModuleCreateInfo createInfo = {};
