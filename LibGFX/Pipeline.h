@@ -5,7 +5,8 @@ namespace LibGFX {
 
 	// Abstract base class for a Vulkan pipeline
 	class Pipeline {
-		public:
+
+	public:
 		Pipeline() = default;
 		virtual ~Pipeline() = default;
 
