@@ -113,12 +113,20 @@ LibGFX::DepthBuffer VkRenderer::createDepthBuffer(VkExtent2D extent, VkFormat fo
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		&depthImageMemory);
 
-	// Create depth image view TODO: CREATE THIS NEXT!
+	// Create depth image view
+	VkImageView depthImageView = createImageView(
+		m_device, 
+		depthImage, 
+		format, 
+		VK_IMAGE_ASPECT_DEPTH_BIT);
 
-
-
+	// Create depth buffer struct
 	DepthBuffer depthBuffer = {};
 	depthBuffer.format = format;
+	depthBuffer.image = depthImage;
+	depthBuffer.memory = depthImageMemory;
+	depthBuffer.imageView = depthImageView;
+	return depthBuffer;
 }
 
 void VkRenderer::destroySwapChain(SwapchainInfo& swapchainInfo)
