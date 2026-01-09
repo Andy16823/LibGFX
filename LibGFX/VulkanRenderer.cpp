@@ -98,6 +98,11 @@ VkSurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(const std::vector<VkS
 
 SwapchainInfo VulkanRenderer::createSwapChain(VkPresentModeKHR desiredPresentMode)
 {
+	// Check if desired present mode is available
+	if (!this->isPresentModeAvailable(desiredPresentMode)) {
+		throw std::runtime_error("Desired present mode is not available");
+	}
+
 	// TODO: Create isPresentModeAvailable public helper method
 	SwapchainInfo swapchainInfo;
 
@@ -323,7 +328,7 @@ bool VulkanRenderer::hasRequiredLayers(const std::vector<const char*> requiredLa
 	for (const auto& reqLayer : requiredLayers) {
 		bool result = false;
 		for (const auto& layerProperties : availableLayers) {
-			if (strcmp(reqLayer, layerProperties.layerName)) {
+			if (strcmp(reqLayer, layerProperties.layerName) == 0) {
 				result = true;
 				break;
 			}
@@ -349,7 +354,7 @@ bool VulkanRenderer::hasRequiredExtensions(const std::vector<const char*>* requi
 	for (const auto& reqExt : *requiredExtensions) {
 		bool result = false;
 		for (const auto& ext : availableExtensions) {
-			if (strcmp(reqExt, ext.extensionName)) {
+			if (strcmp(reqExt, ext.extensionName) == 0) {
 				result = true;
 				break;
 			}
