@@ -55,6 +55,7 @@ namespace LibGFX {
 		void destroySampler(VkSampler& sampler);
 
 		// Descriptor set functions
+		void destroyDescriptorSetPool(VkDescriptorPool& descriptorPool);
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }

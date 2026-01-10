@@ -16,6 +16,11 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::destroyDescriptorSetPool(VkDescriptorPool& descriptorPool)
+{
+	vkDestroyDescriptorPool(m_device, descriptorPool, nullptr);
+}
+
 VkSampler VkContext::createCubeMapSampler(bool enableAnisotropy, float maxAnisotropy)
 {
 	VkSamplerCreateInfo samplerInfo = {};
