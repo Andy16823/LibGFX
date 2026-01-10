@@ -67,6 +67,12 @@ namespace LibGFX {
 		std::vector<VkFence> createFences(uint32_t count, VkFenceCreateFlags flags = 0);
 		void destroyFence(VkFence& fence);
 		void destroyFences(std::vector<VkFence>& fences);
+		void waitForFence(VkFence fence, uint64_t timeout = std::numeric_limits<uint64_t>::max());
+		void resetFence(VkFence fence);
+
+		// Present & Graphics queue access
+		VkResult acquireNextImage(const SwapchainInfo& swapchainInfo, VkSemaphore signalSemaphore, VkFence fence, uint32_t& imageIndex, uint64_t timeout = std::numeric_limits<uint64_t>::max());
+		
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }

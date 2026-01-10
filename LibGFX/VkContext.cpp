@@ -16,6 +16,29 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::resetFence(VkFence fence)
+{
+	vkResetFences(m_device, 1, &fence);
+}
+
+VkResult VkContext::acquireNextImage(const SwapchainInfo& swapchainInfo, VkSemaphore signalSemaphore, VkFence fence, uint32_t& imageIndex, uint64_t timeout)
+{
+	VkResult result = vkAcquireNextImageKHR(
+		m_device,
+		swapchainInfo.swapchain,
+		timeout,
+		signalSemaphore,
+		fence,
+		&imageIndex);
+
+	return result;
+}
+
+void VkContext::waitForFence(VkFence fence, uint64_t timeout /*= std::numeric_limits<uint64_t>::max()*/)
+{
+	vkWaitForFences(m_device, 1, &fence, VK_TRUE, timeout);
+}
+
 void VkContext::destroyFences(std::vector<VkFence>& fences)
 {
 	for (auto& fence : fences) {
