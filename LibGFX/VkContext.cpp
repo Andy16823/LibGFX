@@ -16,6 +16,75 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+VkSampler VkContext::createCubeMapSampler(bool enableAnisotropy, float maxAnisotropy)
+{
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+	if (!enableAnisotropy) {
+		samplerInfo.anisotropyEnable = VK_FALSE;
+		samplerInfo.maxAnisotropy = 1.0f;
+	}
+	else
+	{
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = maxAnisotropy;
+	}
+
+	return createSampler(samplerInfo);
+}
+
+VkSampler VkContext::createTextureSampler(bool enableAnisotropy, float maxAnisotropy)
+{
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+	if (!enableAnisotropy) {
+		samplerInfo.anisotropyEnable = VK_FALSE;
+		samplerInfo.maxAnisotropy = 1.0f;
+	}
+	else
+	{
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = maxAnisotropy;
+	}
+	return createSampler(samplerInfo);
+}
+
+void VkContext::destroySampler(VkSampler& sampler)
+{
+	vkDestroySampler(m_device, sampler, nullptr);
+}
+
+VkSampler VkContext::createSampler(const VkSamplerCreateInfo& createInfo)
+{
+	VkSampler sampler;
+	if (vkCreateSampler(m_device, &createInfo, nullptr, &sampler) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create texture sampler");
+	}
+	return sampler;
+}
+
 void VkContext::freeCommandBuffers(VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers)
 {
 	vkFreeCommandBuffers(m_device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
@@ -26,7 +95,7 @@ void VkContext::freeCommandBuffer(VkCommandPool commandPool, VkCommandBuffer& co
 	vkFreeCommandBuffers(m_device, commandPool, 1, &commandBuffer);
 }
 
-std::vector<VkCommandBuffer> VkContext::createCommandBuffers(VkCommandPool commandPool, uint32_t count, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
+std::vector<VkCommandBuffer> VkContext::allocateCommandBuffers(VkCommandPool commandPool, uint32_t count, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
 {
 	std::vector<VkCommandBuffer> commandBuffers(count);
 
@@ -43,7 +112,7 @@ std::vector<VkCommandBuffer> VkContext::createCommandBuffers(VkCommandPool comma
 	return commandBuffers;
 }
 
-VkCommandBuffer VkContext::createCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
+VkCommandBuffer VkContext::allocateCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

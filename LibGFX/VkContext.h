@@ -43,10 +43,16 @@ namespace LibGFX {
 		void destroyCommandPool(VkCommandPool& commandPool);
 
 		// Command buffer functions
-		VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-		std::vector<VkCommandBuffer> createCommandBuffers(VkCommandPool commandPool, uint32_t count, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		VkCommandBuffer allocateCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		std::vector<VkCommandBuffer> allocateCommandBuffers(VkCommandPool commandPool, uint32_t count, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 		void freeCommandBuffer(VkCommandPool commandPool, VkCommandBuffer& commandBuffer);
 		void freeCommandBuffers(VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers);
+
+		// Sampler functions
+		VkSampler createSampler(const VkSamplerCreateInfo& createInfo);
+		VkSampler createTextureSampler(bool enableAnisotropy = true, float maxAnisotropy = 16.0f);
+		VkSampler createCubeMapSampler(bool enableAnisotropy = true, float maxAnisotropy = 16.0f);
+		void destroySampler(VkSampler& sampler);
 
 
 		// Getters
