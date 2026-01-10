@@ -42,6 +42,13 @@ namespace LibGFX {
 		VkCommandPool createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0);
 		void destroyCommandPool(VkCommandPool& commandPool);
 
+		// Command buffer functions
+		VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		std::vector<VkCommandBuffer> createCommandBuffers(VkCommandPool commandPool, uint32_t count, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		void freeCommandBuffer(VkCommandPool commandPool, VkCommandBuffer& commandBuffer);
+		void freeCommandBuffers(VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers);
+
+
 		// Getters
 		VkInstance getInstance() const { return m_instance; }
 		VkSurfaceKHR getSurface() const { return m_surface; }

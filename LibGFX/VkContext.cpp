@@ -16,6 +16,48 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::freeCommandBuffers(VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers)
+{
+	vkFreeCommandBuffers(m_device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+}
+
+void VkContext::freeCommandBuffer(VkCommandPool commandPool, VkCommandBuffer& commandBuffer)
+{
+	vkFreeCommandBuffers(m_device, commandPool, 1, &commandBuffer);
+}
+
+std::vector<VkCommandBuffer> VkContext::createCommandBuffers(VkCommandPool commandPool, uint32_t count, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
+{
+	std::vector<VkCommandBuffer> commandBuffers(count);
+
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = level;
+	allocInfo.commandBufferCount = count;
+
+	if (vkAllocateCommandBuffers(m_device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate command buffers");
+	}
+
+	return commandBuffers;
+}
+
+VkCommandBuffer VkContext::createCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = level;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	if (vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate command buffer");
+	}
+	return commandBuffer;
+}
+
 void VkContext::destroyCommandPool(VkCommandPool& commandPool)
 {
 	vkDestroyCommandPool(m_device, commandPool, nullptr);
