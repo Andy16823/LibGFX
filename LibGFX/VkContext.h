@@ -81,8 +81,9 @@ namespace LibGFX {
 
 		void submitCommandBuffer(const VkSubmitInfo& submitInfo, VkFence fence = VK_NULL_HANDLE);
 		void submitCommandBuffers(const std::vector<VkSubmitInfo>& submitInfos, VkFence fence = VK_NULL_HANDLE);
-		void presentImage(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo);
-
+		void queuePresent(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo);
+		void queuePresent(const VkPresentInfoKHR& presentInfo);
+		void waitIdle();
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }

@@ -16,7 +16,17 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
-void VkContext::presentImage(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo)
+void VkContext::waitIdle()
+{
+	vkDeviceWaitIdle(m_device);
+}
+
+void VkContext::queuePresent(const VkPresentInfoKHR& presentInfo)
+{
+	this->queuePresent(m_presentQueue, presentInfo);
+}
+
+void VkContext::queuePresent(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo)
 {
 	if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to present image");
