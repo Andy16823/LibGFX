@@ -32,3 +32,9 @@ VkDescriptorPool LibGFX::DescriptorPoolBuilder::build(VkContext& context)
 	}
 	return descriptorPool;
 }
+
+void LibGFX::DescriptorPoolBuilder::clear()
+{
+	m_poolSizes.clear();
+	m_maxSets = 0;
+}
