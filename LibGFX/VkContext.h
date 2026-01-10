@@ -58,6 +58,8 @@ namespace LibGFX {
 
 		// Descriptor set functions
 		void destroyDescriptorSetPool(VkDescriptorPool& descriptorPool);
+		VkDescriptorSet allocateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout);
+		void freeDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSet& descriptorSet);
 
 		// Semaphore & Fence functions
 		VkSemaphore createSemaphore();

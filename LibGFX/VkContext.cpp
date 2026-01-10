@@ -16,6 +16,27 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::freeDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSet& descriptorSet)
+{
+	vkFreeDescriptorSets(m_device, descriptorPool, 1, &descriptorSet);
+	descriptorSet = VK_NULL_HANDLE;
+}
+
+VkDescriptorSet VkContext::allocateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout)
+{
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorSetCount = 1;
+	allocInfo.pSetLayouts = &descriptorSetLayout;
+
+	VkDescriptorSet descriptorSet;
+	if (vkAllocateDescriptorSets(m_device, &allocInfo, &descriptorSet) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate descriptor set");
+	}
+	return descriptorSet;
+}
+
 void VkContext::updateBuffer(const Buffer& buffer, const void* data, VkDeviceSize size, VkDeviceSize offset /*= 0*/)
 {
 	if (offset + size > buffer.size) {
