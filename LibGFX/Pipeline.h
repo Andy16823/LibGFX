@@ -1,9 +1,10 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-class VkRenderer;
-
 namespace LibGFX {
+
+	class VkRenderer;
+
 	class Pipeline {
 
 	public:
