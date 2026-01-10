@@ -16,6 +16,11 @@ LibGFX::VkRenderer::~VkRenderer()
 	m_targetWindow = nullptr;
 }
 
+void VkRenderer::destroyShaderModule(VkShaderModule shaderModule)
+{
+	vkDestroyShaderModule(m_device, shaderModule, nullptr);
+}
+
 VkRect2D VkRenderer::createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent)
 {
 	VkRect2D scissor = {};

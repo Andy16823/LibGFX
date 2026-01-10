@@ -17,15 +17,18 @@ namespace LibGFX {
 
 		void initialize(VkApplicationInfo appInfo);
 		void dispose();
+
+		// Swapchain functions
 		SwapchainInfo createSwapChain(VkPresentModeKHR desiredPresentMode);
 		void destroySwapChain(SwapchainInfo& swapchainInfo);
 		
+		// Public functions
 		VkFormat selectSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 		DepthBuffer createDepthBuffer(VkExtent2D extent, VkFormat format);
 		void destroyDepthBuffer(DepthBuffer& depthBuffer);
 		void destroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
 		VkShaderModule createShaderModule(const std::vector<char>& code);
-
+		void destroyShaderModule(VkShaderModule shaderModule);
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }
