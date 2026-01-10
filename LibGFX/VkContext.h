@@ -8,10 +8,10 @@
 #include "DepthBuffer.h"
 
 namespace LibGFX {
-	class VkRenderer {
+	class VkContext {
 	public:
-		VkRenderer(GLFWwindow* targetWindow);
-		~VkRenderer();
+		VkContext(GLFWwindow* targetWindow);
+		~VkContext();
 
 		static VkApplicationInfo defaultAppInfo();
 

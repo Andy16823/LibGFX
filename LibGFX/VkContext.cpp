@@ -1,4 +1,4 @@
-#include "VkRenderer.h"
+#include "VkContext.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <array>
@@ -6,22 +6,22 @@
 
 using namespace LibGFX;
 
-VkRenderer::VkRenderer(GLFWwindow* targetWindow)
+VkContext::VkContext(GLFWwindow* targetWindow)
 {
 	m_targetWindow = targetWindow;
 }
 
-LibGFX::VkRenderer::~VkRenderer()
+LibGFX::VkContext::~VkContext()
 {
 	m_targetWindow = nullptr;
 }
 
-void VkRenderer::destroyShaderModule(VkShaderModule shaderModule)
+void VkContext::destroyShaderModule(VkShaderModule shaderModule)
 {
 	vkDestroyShaderModule(m_device, shaderModule, nullptr);
 }
 
-VkRect2D VkRenderer::createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent)
+VkRect2D VkContext::createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent)
 {
 	VkRect2D scissor = {};
 	scissor.offset = { offsetX, offsetY };
@@ -29,7 +29,7 @@ VkRect2D VkRenderer::createScissorRect(int32_t offsetX, int32_t offsetY, VkExten
 	return scissor;
 }
 
-VkViewport VkRenderer::createViewport(float x, float y, VkExtent2D extent, float minDepth /*= 0.0f*/, float maxDepth /*= 1.0f*/)
+VkViewport VkContext::createViewport(float x, float y, VkExtent2D extent, float minDepth /*= 0.0f*/, float maxDepth /*= 1.0f*/)
 {
 	VkViewport viewport = {};
 	viewport.x = x;
@@ -41,7 +41,7 @@ VkViewport VkRenderer::createViewport(float x, float y, VkExtent2D extent, float
 	return viewport;
 }
 
-VkShaderModule VkRenderer::createShaderModule(const std::vector<char>& code)
+VkShaderModule VkContext::createShaderModule(const std::vector<char>& code)
 {
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -55,19 +55,19 @@ VkShaderModule VkRenderer::createShaderModule(const std::vector<char>& code)
 	return shaderModule;
 }
 
-void VkRenderer::destroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
+void VkContext::destroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
 {
 	vkDestroyDescriptorSetLayout(m_device, descriptorSetLayout, nullptr);
 }
 
-void VkRenderer::destroyDepthBuffer(DepthBuffer& depthBuffer)
+void VkContext::destroyDepthBuffer(DepthBuffer& depthBuffer)
 {
 	vkDestroyImageView(m_device, depthBuffer.imageView, nullptr);
 	vkDestroyImage(m_device, depthBuffer.image, nullptr);
 	vkFreeMemory(m_device, depthBuffer.memory, nullptr);
 }
 
-VkFormat VkRenderer::findSuitableDepthFormat()
+VkFormat VkContext::findSuitableDepthFormat()
 {
 	auto format = selectSupportedFormat(
 		{ VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT },
@@ -76,7 +76,7 @@ VkFormat VkRenderer::findSuitableDepthFormat()
 	return format;
 }
 
-VkFormat VkRenderer::selectSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+VkFormat VkContext::selectSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 {
 	for (VkFormat format : candidates) {
 		VkFormatProperties props;
@@ -92,7 +92,7 @@ VkFormat VkRenderer::selectSupportedFormat(const std::vector<VkFormat>& candidat
 	return VK_FORMAT_UNDEFINED;
 }
 
-uint32_t VkRenderer::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t VkContext::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -105,7 +105,7 @@ uint32_t VkRenderer::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t ty
 	throw std::runtime_error("Failed to find suitable memory type");
 }
 
-VkImage VkRenderer::createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
+VkImage VkContext::createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
 {
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -145,7 +145,7 @@ VkImage VkRenderer::createImage(VkPhysicalDevice physicalDevice, VkDevice device
 	return image;
 }
 
-LibGFX::DepthBuffer VkRenderer::createDepthBuffer(VkExtent2D extent, VkFormat format)
+LibGFX::DepthBuffer VkContext::createDepthBuffer(VkExtent2D extent, VkFormat format)
 {
 	if (format == VK_FORMAT_UNDEFINED) {
 		throw std::runtime_error("Failed to find supported depth format");
@@ -180,7 +180,7 @@ LibGFX::DepthBuffer VkRenderer::createDepthBuffer(VkExtent2D extent, VkFormat fo
 	return depthBuffer;
 }
 
-void VkRenderer::destroySwapChain(SwapchainInfo& swapchainInfo)
+void VkContext::destroySwapChain(SwapchainInfo& swapchainInfo)
 {
 	for (auto imageView : swapchainInfo.imageViews) {
 		vkDestroyImageView(m_device, imageView, nullptr);
@@ -188,7 +188,7 @@ void VkRenderer::destroySwapChain(SwapchainInfo& swapchainInfo)
 	vkDestroySwapchainKHR(m_device, swapchainInfo.swapchain, nullptr);
 }
 
-VkImageView VkRenderer::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
+VkImageView VkContext::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
 {
 	VkImageViewCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -213,7 +213,7 @@ VkImageView VkRenderer::createImageView(VkDevice device, VkImage image, VkFormat
 	return imageView;
 }
 
-VkExtent2D VkRenderer::chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D VkContext::chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
 	if (capabilities.currentExtent.width != UINT32_MAX) {
 		return capabilities.currentExtent;
@@ -231,7 +231,7 @@ VkExtent2D VkRenderer::chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& cap
 	return actualExtent;
 }
 
-bool VkRenderer::isPresentModeAvailable(VkPresentModeKHR presentMode)
+bool VkContext::isPresentModeAvailable(VkPresentModeKHR presentMode)
 {
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice);
 	for (const auto& availablePresentMode : swapChainSupport.presentModes) {
@@ -242,7 +242,7 @@ bool VkRenderer::isPresentModeAvailable(VkPresentModeKHR presentMode)
 	return false;
 }
 
-VkSurfaceFormatKHR VkRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR VkContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
 	if(availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
 		return { VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
@@ -260,7 +260,7 @@ VkSurfaceFormatKHR VkRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfa
 	return availableFormats[0];
 }
 
-SwapchainInfo VkRenderer::createSwapChain(VkPresentModeKHR desiredPresentMode)
+SwapchainInfo VkContext::createSwapChain(VkPresentModeKHR desiredPresentMode)
 {
 	// Check if desired present mode is available
 	if (!this->isPresentModeAvailable(desiredPresentMode)) {
@@ -334,7 +334,7 @@ SwapchainInfo VkRenderer::createSwapChain(VkPresentModeKHR desiredPresentMode)
 	return swapchainInfo;
 }
 
-void VkRenderer::dispose()
+void VkContext::dispose()
 {
 	if (m_device != VK_NULL_HANDLE) {
 		vkDeviceWaitIdle(m_device);
@@ -344,7 +344,7 @@ void VkRenderer::dispose()
 	}
 }
 
-LibGFX::SwapChainSupportDetails VkRenderer::querySwapChainSupport(VkPhysicalDevice device)
+LibGFX::SwapChainSupportDetails VkContext::querySwapChainSupport(VkPhysicalDevice device)
 {
 	SwapChainSupportDetails details;
 
@@ -367,7 +367,7 @@ LibGFX::SwapChainSupportDetails VkRenderer::querySwapChainSupport(VkPhysicalDevi
 	return details;
 }
 
-bool VkRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
+bool VkContext::checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
 {
 	uint32_t extensionCount;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -394,7 +394,7 @@ bool VkRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device, const std:
 	return true;
 }
 
-LibGFX::QueueFamilyIndices VkRenderer::findQueueFamilies(VkPhysicalDevice device)
+LibGFX::QueueFamilyIndices VkContext::findQueueFamilies(VkPhysicalDevice device)
 {
 	QueueFamilyIndices indices;
 
@@ -425,7 +425,7 @@ LibGFX::QueueFamilyIndices VkRenderer::findQueueFamilies(VkPhysicalDevice device
 	return indices;
 }
 
-bool VkRenderer::isDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
+bool VkContext::isDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions)
 {
 	// Check for required features
 	VkPhysicalDeviceFeatures deviceFeatures;
@@ -445,7 +445,7 @@ bool VkRenderer::isDeviceSuitable(VkPhysicalDevice device, const std::vector<con
 	return indices.isValid() && extensionsSupported && swapChainAdequate && deviceFeatures.samplerAnisotropy;
 }
 
-VkPhysicalDevice VkRenderer::selectPhysicalDevice(const std::vector<const char*> deviceExtensions)
+VkPhysicalDevice VkContext::selectPhysicalDevice(const std::vector<const char*> deviceExtensions)
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
@@ -466,7 +466,7 @@ VkPhysicalDevice VkRenderer::selectPhysicalDevice(const std::vector<const char*>
 	return VK_NULL_HANDLE;
 }
 
-VkApplicationInfo VkRenderer::defaultAppInfo()
+VkApplicationInfo VkContext::defaultAppInfo()
 {
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -478,7 +478,7 @@ VkApplicationInfo VkRenderer::defaultAppInfo()
 	return appInfo;
 }
 
-bool VkRenderer::hasRequiredLayers(const std::vector<const char*> requiredLayers)
+bool VkContext::hasRequiredLayers(const std::vector<const char*> requiredLayers)
 {
 	// Get the layers count
 	uint32_t layerCount;
@@ -504,7 +504,7 @@ bool VkRenderer::hasRequiredLayers(const std::vector<const char*> requiredLayers
 	return true;
 }
 
-bool VkRenderer::hasRequiredExtensions(const std::vector<const char*>* requiredExtensions)
+bool VkContext::hasRequiredExtensions(const std::vector<const char*>* requiredExtensions)
 {
 	// Get the available extensions count
 	uint32_t extensionCount = 0;
@@ -530,7 +530,7 @@ bool VkRenderer::hasRequiredExtensions(const std::vector<const char*>* requiredE
 	return true;
 }
 
-void VkRenderer::initialize(VkApplicationInfo appInfo)
+void VkContext::initialize(VkApplicationInfo appInfo)
 {
 	std::cout << "Initializing Vulkan Renderer..." << std::endl;
 	std::cout << "Creating Validation Layers..." << std::endl;

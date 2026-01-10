@@ -3,15 +3,15 @@
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <string>
-#include "VkRenderer.h"
+#include "VkContext.h"
 
 namespace LibGFX {
 	class GFX {
 	public:
-		static GLFWwindow* createContext(int width, int height, const char* title);
+		static GLFWwindow* createWindow(int width, int height, const char* title);
 		static std::vector<char> readFile(const std::string& filename);
-		static std::unique_ptr<VkRenderer> createVulkanRenderer(GLFWwindow* targetWindow) {
-			return std::make_unique<VkRenderer>(targetWindow);
+		static std::unique_ptr<VkContext> createContext(GLFWwindow* targetWindow) {
+			return std::make_unique<VkContext>(targetWindow);
 		}
 	};
 }

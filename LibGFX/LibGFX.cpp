@@ -7,7 +7,7 @@
 using namespace std;
 using namespace LibGFX;
 
-GLFWwindow* GFX::createContext(int width, int height, const char* title)
+GLFWwindow* GFX::createWindow(int width, int height, const char* title)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
