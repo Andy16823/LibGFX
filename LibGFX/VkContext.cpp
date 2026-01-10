@@ -16,6 +16,25 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::destroyCommandPool(VkCommandPool& commandPool)
+{
+	vkDestroyCommandPool(m_device, commandPool, nullptr);
+}
+
+VkCommandPool VkContext::createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags /*= 0*/)
+{
+	VkCommandPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = queueFamilyIndex;
+	poolInfo.flags = flags;
+
+	VkCommandPool commandPool;
+	if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create command pool");
+	}
+	return commandPool;
+}
+
 void VkContext::destroyFramebuffer(VkFramebuffer& framebuffer)
 {
 	vkDestroyFramebuffer(m_device, framebuffer, nullptr);
@@ -370,7 +389,7 @@ SwapchainInfo VkContext::createSwapChain(VkPresentModeKHR desiredPresentMode)
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	createInfo.clipped = VK_TRUE;
 
-	QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+	QueueFamilyIndices indices = getQueueFamilyIndices(m_physicalDevice);
 	if (!indices.gpShared()) {
 		uint32_t queueFamilyIndices[] = {
 			static_cast<uint32_t>(indices.graphicsFamily),
@@ -466,7 +485,7 @@ bool VkContext::checkDeviceExtensionSupport(VkPhysicalDevice device, const std::
 	return true;
 }
 
-LibGFX::QueueFamilyIndices VkContext::findQueueFamilies(VkPhysicalDevice device)
+LibGFX::QueueFamilyIndices VkContext::getQueueFamilyIndices(VkPhysicalDevice device)
 {
 	QueueFamilyIndices indices;
 
@@ -504,7 +523,7 @@ bool VkContext::isDeviceSuitable(VkPhysicalDevice device, const std::vector<cons
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
 	// Check for required queue families (graphics and present, is mostly the same)
-	QueueFamilyIndices indices = findQueueFamilies(device);
+	QueueFamilyIndices indices = getQueueFamilyIndices(device);
 
 	// Check for required DEVICE EXTENSIONS not instance extensions 
 	bool extensionsSupported = checkDeviceExtensionSupport(device, deviceExtensions);
@@ -665,7 +684,7 @@ void VkContext::initialize(VkApplicationInfo appInfo)
 	std::cout << "Selected GPU: " << deviceProperties.deviceName << std::endl;
 
 	// Create Logical Device
-	QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+	QueueFamilyIndices indices = getQueueFamilyIndices(m_physicalDevice);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<int> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };

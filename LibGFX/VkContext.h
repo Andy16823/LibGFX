@@ -38,6 +38,10 @@ namespace LibGFX {
 		std::vector<VkFramebuffer> createFramebuffers(RenderPass& renderPass, const SwapchainInfo& swapchainInfo);
 		void destroyFramebuffer(VkFramebuffer& framebuffer);
 
+		// Command pool functions
+		VkCommandPool createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0);
+		void destroyCommandPool(VkCommandPool& commandPool);
+
 		// Getters
 		VkInstance getInstance() const { return m_instance; }
 		VkSurfaceKHR getSurface() const { return m_surface; }
@@ -54,7 +58,7 @@ namespace LibGFX {
 		static VkViewport createViewport(float x, float y, VkExtent2D extent, float minDepth = 0.0f, float maxDepth = 1.0f);
 		static VkRect2D createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent);
 		VkFormat findSuitableDepthFormat();
-
+		QueueFamilyIndices getQueueFamilyIndices(VkPhysicalDevice device);
 	private:
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;
@@ -68,7 +72,6 @@ namespace LibGFX {
 		bool hasRequiredExtensions(const std::vector<const char*>* requiredExtensions);
 		VkPhysicalDevice selectPhysicalDevice(const std::vector<const char*> deviceExtensions);
 		bool isDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions);
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*> deviceExtensions);
 		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
