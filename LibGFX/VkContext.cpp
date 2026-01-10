@@ -16,6 +16,46 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::destroyBuffer(Buffer& buffer)
+{
+	vkDestroyBuffer(m_device, buffer.buffer, nullptr);
+	vkFreeMemory(m_device, buffer.memory, nullptr);
+	buffer.buffer = VK_NULL_HANDLE;
+	buffer.memory = VK_NULL_HANDLE;
+	buffer.size = 0;
+}
+
+LibGFX::Buffer VkContext::createBuffer(uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+{
+	VkBufferCreateInfo bufferInfo = {};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	Buffer buffer = {};
+	if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &buffer.buffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(m_device, buffer.buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(m_physicalDevice, memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(m_device, &allocInfo, nullptr, &buffer.memory) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate buffer memory");
+	}
+
+	vkBindBufferMemory(m_device, buffer.buffer, buffer.memory, 0);
+	buffer.size = size;
+
+	return buffer;
+}
+
 void VkContext::waitIdle()
 {
 	vkDeviceWaitIdle(m_device);

@@ -8,6 +8,7 @@
 #include "DepthBuffer.h"
 #include "RenderPass.h"
 #include "Pipeline.h"
+#include "Buffer.h"
 
 namespace LibGFX {
 	class VkContext {
@@ -71,6 +72,10 @@ namespace LibGFX {
 		void waitForFence(VkFence fence, uint64_t timeout = std::numeric_limits<uint64_t>::max());
 		void resetFence(VkFence fence);
 
+		// Buffer
+		Buffer createBuffer(uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		void destroyBuffer(Buffer& buffer);
+
 		// Present & Graphics queue access
 		VkResult acquireNextImage(const SwapchainInfo& swapchainInfo, VkSemaphore signalSemaphore, VkFence fence, uint32_t& imageIndex, uint64_t timeout = std::numeric_limits<uint64_t>::max());
 		void beginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags flags = 0);
@@ -127,4 +132,5 @@ namespace LibGFX {
 
 		GLFWwindow* m_targetWindow;
 	};
+
 }
