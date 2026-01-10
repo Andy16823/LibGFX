@@ -16,6 +16,22 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::updateBuffer(const Buffer& buffer, const void* data, VkDeviceSize size, VkDeviceSize offset /*= 0*/)
+{
+	if (offset + size > buffer.size) {
+		throw std::runtime_error("updateBuffer: write out of bounds");
+	}
+
+	void* mappedData;
+	VkResult result = vkMapMemory(m_device, buffer.memory, offset, size, 0, &mappedData);
+	if (result != VK_SUCCESS) {
+		throw std::runtime_error("Failed to map buffer memory");
+	}
+
+	memcpy(mappedData, data, static_cast<size_t>(size));
+	vkUnmapMemory(m_device, buffer.memory);
+}
+
 void VkContext::destroyBuffer(Buffer& buffer)
 {
 	vkDestroyBuffer(m_device, buffer.buffer, nullptr);
@@ -25,7 +41,7 @@ void VkContext::destroyBuffer(Buffer& buffer)
 	buffer.size = 0;
 }
 
-LibGFX::Buffer VkContext::createBuffer(uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+LibGFX::Buffer VkContext::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

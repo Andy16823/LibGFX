@@ -73,7 +73,8 @@ namespace LibGFX {
 		void resetFence(VkFence fence);
 
 		// Buffer
-		Buffer createBuffer(uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		Buffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		void updateBuffer(const Buffer& buffer, const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
 		void destroyBuffer(Buffer& buffer);
 
 		// Present & Graphics queue access
