@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <vector>
+#include "VkContext.h"
 
 // Info about a single descriptor binding
 struct DescriptorBindingInfo
@@ -17,7 +18,7 @@ namespace LibGFX {
 	{
 	public:
 		DescriptorSetLayoutBuilder& addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags, uint32_t descriptorCount = 1);
-		VkDescriptorSetLayout build(VkDevice device);
+		VkDescriptorSetLayout build(VkContext& context);
 		void clear() { m_bindings.clear(); }
 	private:
 		std::vector<DescriptorBindingInfo> m_bindings;

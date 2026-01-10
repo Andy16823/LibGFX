@@ -12,7 +12,7 @@ LibGFX::DescriptorSetLayoutBuilder& LibGFX::DescriptorSetLayoutBuilder::addBindi
 	return *this;
 }
 
-VkDescriptorSetLayout LibGFX::DescriptorSetLayoutBuilder::build(VkDevice device) 
+VkDescriptorSetLayout LibGFX::DescriptorSetLayoutBuilder::build(VkContext& context) 
 {
 	std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
 	layoutBindings.reserve(m_bindings.size());
@@ -33,7 +33,7 @@ VkDescriptorSetLayout LibGFX::DescriptorSetLayoutBuilder::build(VkDevice device)
 	layoutCreateInfo.pBindings = layoutBindings.data();
 
 	VkDescriptorSetLayout descriptorSetLayout;
-	if (vkCreateDescriptorSetLayout(device, &layoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+	if (vkCreateDescriptorSetLayout(context.getDevice(), &layoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor set layout");
 	}
 

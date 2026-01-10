@@ -54,6 +54,7 @@ namespace LibGFX {
 		VkSampler createCubeMapSampler(bool enableAnisotropy = true, float maxAnisotropy = 16.0f);
 		void destroySampler(VkSampler& sampler);
 
+		// Descriptor set functions
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }
