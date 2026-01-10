@@ -57,6 +57,17 @@ namespace LibGFX {
 		// Descriptor set functions
 		void destroyDescriptorSetPool(VkDescriptorPool& descriptorPool);
 
+		// Semaphore & Fence functions
+		VkSemaphore createSemaphore();
+		std::vector<VkSemaphore> createSemaphores(uint32_t count);
+		void destroySemaphore(VkSemaphore& semaphore);
+		void destroySemaphores(std::vector<VkSemaphore>& semaphores);
+
+		VkFence createFence(VkFenceCreateFlags flags = 0);
+		std::vector<VkFence> createFences(uint32_t count, VkFenceCreateFlags flags = 0);
+		void destroyFence(VkFence& fence);
+		void destroyFences(std::vector<VkFence>& fences);
+
 		// Getters
 		VkInstance getInstance() const { return m_instance; }
 		VkSurfaceKHR getSurface() const { return m_surface; }

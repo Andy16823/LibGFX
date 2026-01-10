@@ -16,6 +16,84 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::destroyFences(std::vector<VkFence>& fences)
+{
+	for (auto& fence : fences) {
+		vkDestroyFence(m_device, fence, nullptr);
+	}
+}
+
+void VkContext::destroySemaphores(std::vector<VkSemaphore>& semaphores)
+{
+	for (auto& semaphore : semaphores) {
+		vkDestroySemaphore(m_device, semaphore, nullptr);
+	}
+}
+
+void VkContext::destroyFence(VkFence& fence)
+{
+	vkDestroyFence(m_device, fence, nullptr);
+}
+
+std::vector<VkFence> VkContext::createFences(uint32_t count, VkFenceCreateFlags flags /*= 0*/)
+{
+	std::vector<VkFence> fences(count);
+	VkFenceCreateInfo fenceInfo = {};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = flags;
+
+	for (uint32_t i = 0; i < count; i++) {
+		if (vkCreateFence(m_device, &fenceInfo, nullptr, &fences[i]) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create fence");
+		}
+	}
+	return fences;
+}
+
+VkFence VkContext::createFence(VkFenceCreateFlags flags /*= 0*/)
+{
+	VkFenceCreateInfo fenceInfo = {};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = flags;
+
+	VkFence fence;
+	if (vkCreateFence(m_device, &fenceInfo, nullptr, &fence) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create fence");
+	}
+	return fence;
+}
+
+void VkContext::destroySemaphore(VkSemaphore& semaphore)
+{
+	vkDestroySemaphore(m_device, semaphore, nullptr);
+}
+
+std::vector<VkSemaphore> VkContext::createSemaphores(uint32_t count)
+{
+	std::vector<VkSemaphore> semaphores(count);
+
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	for (uint32_t i = 0; i < count; i++) {
+		if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &semaphores[i]) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create semaphore");
+		}
+	}
+	return semaphores;
+}
+
+VkSemaphore VkContext::createSemaphore()
+{
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	
+	VkSemaphore semaphore;
+	if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create semaphore");
+	}
+	return semaphore;
+}
+
 void VkContext::destroyDescriptorSetPool(VkDescriptorPool& descriptorPool)
 {
 	vkDestroyDescriptorPool(m_device, descriptorPool, nullptr);
