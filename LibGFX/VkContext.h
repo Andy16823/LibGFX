@@ -6,6 +6,7 @@
 #include "SwapchainSupportDetails.h"
 #include "SwapchainInfo.h"
 #include "DepthBuffer.h"
+#include "RenderPass.h"
 
 namespace LibGFX {
 	class VkContext {
@@ -29,6 +30,13 @@ namespace LibGFX {
 		void destroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
 		VkShaderModule createShaderModule(const std::vector<char>& code);
 		void destroyShaderModule(VkShaderModule shaderModule);
+
+		// Framebuffer functions
+		VkFramebuffer createFramebuffer(RenderPass& renderPass, VkImageView imageView, DepthBuffer depthBuffer, VkExtent2D extent);
+		VkFramebuffer createFramebuffer(RenderPass& renderPass, VkImageView imageView, VkExtent2D extent);
+		std::vector<VkFramebuffer> createFramebuffers(RenderPass& renderPass, const SwapchainInfo& swapchainInfo, DepthBuffer depthBuffer);
+		std::vector<VkFramebuffer> createFramebuffers(RenderPass& renderPass, const SwapchainInfo& swapchainInfo);
+		void destroyFramebuffer(VkFramebuffer& framebuffer);
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }

@@ -16,6 +16,78 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::destroyFramebuffer(VkFramebuffer& framebuffer)
+{
+	vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+}
+
+std::vector<VkFramebuffer> VkContext::createFramebuffers(RenderPass& renderPass, const SwapchainInfo& swapchainInfo)
+{
+	std::vector<VkFramebuffer> framebuffers;
+	framebuffers.resize(swapchainInfo.imageViews.size());
+	for (size_t i = 0; i < swapchainInfo.imageViews.size(); i++) {
+		framebuffers[i] = createFramebuffer(renderPass, swapchainInfo.imageViews[i], swapchainInfo.extent);
+	}
+	return framebuffers;
+}
+
+std::vector<VkFramebuffer> VkContext::createFramebuffers(RenderPass& renderPass, const SwapchainInfo& swapchainInfo, DepthBuffer depthBuffer)
+{
+	std::vector<VkFramebuffer> framebuffers;
+	framebuffers.resize(swapchainInfo.imageViews.size());
+	for (size_t i = 0; i < swapchainInfo.imageViews.size(); i++) {
+		framebuffers[i] = createFramebuffer(renderPass, swapchainInfo.imageViews[i], depthBuffer, swapchainInfo.extent);
+	}
+	return framebuffers;
+}
+
+VkFramebuffer VkContext::createFramebuffer(RenderPass& renderPass, VkImageView imageView, VkExtent2D extent)
+{
+	std::array<VkImageView, 1> attachments = {
+		imageView
+	};
+
+	VkFramebufferCreateInfo framebufferInfo = {};
+	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	framebufferInfo.renderPass = renderPass.getRenderPass();
+	framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	framebufferInfo.pAttachments = attachments.data();
+	framebufferInfo.width = extent.width;
+	framebufferInfo.height = extent.height;
+	framebufferInfo.layers = 1;
+
+	VkFramebuffer framebuffer;
+	if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create framebuffer");
+	}
+	
+	return framebuffer;
+}
+
+VkFramebuffer VkContext::createFramebuffer(RenderPass& renderPass, VkImageView imageView, DepthBuffer depthBuffer, VkExtent2D extent)
+{
+	std::array<VkImageView, 2> attachments = {
+		imageView,
+		depthBuffer.imageView
+	};
+
+	VkFramebufferCreateInfo framebufferInfo = {};
+	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	framebufferInfo.renderPass = renderPass.getRenderPass();
+	framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	framebufferInfo.pAttachments = attachments.data();
+	framebufferInfo.width = extent.width;
+	framebufferInfo.height = extent.height;
+	framebufferInfo.layers = 1;
+
+	VkFramebuffer framebuffer;
+	if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create framebuffer");
+	}
+	
+	return framebuffer;
+}
+
 void VkContext::destroyShaderModule(VkShaderModule shaderModule)
 {
 	vkDestroyShaderModule(m_device, shaderModule, nullptr);
