@@ -21,5 +21,5 @@ target_include_directories(LibGFX
 
 # C++ Standard setzen
 target_compile_features(LibGFX 
-    PUBLIC cxx_std_17
+    PUBLIC cxx_std_20
 )

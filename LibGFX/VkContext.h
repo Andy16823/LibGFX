@@ -7,6 +7,7 @@
 #include "SwapchainInfo.h"
 #include "DepthBuffer.h"
 #include "RenderPass.h"
+#include "Pipeline.h"
 
 namespace LibGFX {
 	class VkContext {
@@ -72,7 +73,16 @@ namespace LibGFX {
 
 		// Present & Graphics queue access
 		VkResult acquireNextImage(const SwapchainInfo& swapchainInfo, VkSemaphore signalSemaphore, VkFence fence, uint32_t& imageIndex, uint64_t timeout = std::numeric_limits<uint64_t>::max());
-		
+		void beginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags flags = 0);
+		void beginRenderPass(VkCommandBuffer commandBuffer, const RenderPass& renderPass, VkFramebuffer framebuffer, VkExtent2D extent, VkSubpassContents contents = VK_SUBPASS_CONTENTS_INLINE);
+		void bindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, const Pipeline& pipeline);
+		void endRenderPass(VkCommandBuffer commandBuffer);
+		void endCommandBuffer(VkCommandBuffer commandBuffer);
+
+		void submitCommandBuffer(const VkSubmitInfo& submitInfo, VkFence fence = VK_NULL_HANDLE);
+		void submitCommandBuffers(const std::vector<VkSubmitInfo>& submitInfos, VkFence fence = VK_NULL_HANDLE);
+		void presentImage(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo);
+
 
 		// Getters
 		VkInstance getInstance() const { return m_instance; }

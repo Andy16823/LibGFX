@@ -96,3 +96,11 @@ void LibGFX::Presets::DefaultRenderPass::destroy(VkDevice device)
 		m_renderPass = VK_NULL_HANDLE;
 	}
 }
+
+std::span<const VkClearValue> LibGFX::Presets::DefaultRenderPass::getClearValues() const
+{
+	static std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} }; 
+	clearValues[1].depthStencil = { 1.0f, 0 };
+	return clearValues;
+}

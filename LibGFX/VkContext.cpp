@@ -16,6 +16,70 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::presentImage(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo)
+{
+	if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to present image");
+	}
+}
+
+void VkContext::submitCommandBuffers(const std::vector<VkSubmitInfo>& submitInfos, VkFence fence /*= VK_NULL_HANDLE*/)
+{
+	if (vkQueueSubmit(m_graphicsQueue, static_cast<uint32_t>(submitInfos.size()), submitInfos.data(), fence) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit command buffers");
+	}
+}
+
+void VkContext::submitCommandBuffer(const VkSubmitInfo& submitInfo, VkFence fence /*= VK_NULL_HANDLE*/)
+{
+	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit command buffer");
+	}
+}
+
+void VkContext::endCommandBuffer(VkCommandBuffer commandBuffer)
+{
+	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to record command buffer");
+	}
+}
+
+void VkContext::endRenderPass(VkCommandBuffer commandBuffer)
+{
+	vkCmdEndRenderPass(commandBuffer);
+}
+
+void VkContext::bindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, const Pipeline& pipeline)
+{
+	vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline.getPipeline());
+}
+
+void VkContext::beginRenderPass(VkCommandBuffer commandBuffer, const RenderPass& renderPass, VkFramebuffer framebuffer, VkExtent2D extent, VkSubpassContents contents)
+{
+	VkRenderPassBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	beginInfo.renderPass = renderPass.getRenderPass();
+	beginInfo.framebuffer = framebuffer;
+	beginInfo.renderArea.offset = { 0, 0 };
+	beginInfo.renderArea.extent = extent;
+	auto clearValues = renderPass.getClearValues();
+	beginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	beginInfo.pClearValues = clearValues.data();
+
+	vkCmdBeginRenderPass(commandBuffer, &beginInfo, contents);
+}
+
+void VkContext::beginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags flags /*= 0*/)
+{
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = flags;
+
+	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to begin recording command buffer");
+	}
+}
+
 void VkContext::resetFence(VkFence fence)
 {
 	vkResetFences(m_device, 1, &fence);

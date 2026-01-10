@@ -13,6 +13,7 @@ namespace LibGFX {
 			VkRenderPass getRenderPass() const override;
 			bool create(VkDevice device, VkFormat swapchainImageFormat, VkFormat depthFormat) override;
 			void destroy(VkDevice device) override;
+			std::span<const VkClearValue> getClearValues() const override;
 		};
 	}
 }
