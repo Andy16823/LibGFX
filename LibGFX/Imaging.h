@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include <cassert>
 
 namespace LibGFX {
 
@@ -62,6 +63,7 @@ namespace LibGFX {
 		case VK_FORMAT_R8G8B8A8_SNORM:
 		case VK_FORMAT_R8G8B8A8_UINT:
 		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_R8G8B8A8_SRGB:
 			return 4;
 		case VK_FORMAT_R16G16B16A16_UNORM:
 		case VK_FORMAT_R16G16B16A16_SNORM:
@@ -75,6 +77,7 @@ namespace LibGFX {
 			return 16;
 
 		default:
+			assert(false && "Unsupported VkFormat in getBytesPerPixel");
 			return 0;
 		}
 	}
