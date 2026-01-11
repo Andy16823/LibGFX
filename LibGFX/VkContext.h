@@ -77,6 +77,7 @@ namespace LibGFX {
 		// Buffer
 		Buffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void updateBuffer(const Buffer& buffer, const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
+		void copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size);
 		void destroyBuffer(Buffer& buffer);
 
 		// Present & Graphics queue access

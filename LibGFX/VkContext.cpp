@@ -16,6 +16,48 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size)
+{
+	// Allocate a temporary command buffer for the copy operation
+	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
+	// Begin recording the command buffer
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to begin recording command buffer for buffer copy");
+	}
+
+	// Copy the buffer
+	VkBufferCopy copyRegion = {};
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	copyRegion.size = size;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
+
+
+	// End recording the command buffer
+	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to record command buffer for buffer copy");
+	}
+
+	// Submit the command buffer and wait for completion
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit buffer copy command buffer");
+	}
+	vkQueueWaitIdle(m_graphicsQueue);
+
+	// Free the temporary command buffer
+	freeCommandBuffer(commandPool, commandBuffer);
+}
+
 void VkContext::freeDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSet& descriptorSet)
 {
 	vkFreeDescriptorSets(m_device, descriptorPool, 1, &descriptorSet);
@@ -369,6 +411,7 @@ std::vector<VkCommandBuffer> VkContext::allocateCommandBuffers(VkCommandPool com
 	return commandBuffers;
 }
 
+// TODO: change to command buffer count
 VkCommandBuffer VkContext::allocateCommandBuffer(VkCommandPool commandPool, VkCommandBufferLevel level /*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
