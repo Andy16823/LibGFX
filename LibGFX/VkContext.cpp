@@ -133,7 +133,7 @@ void VkContext::transitionImageLayout(VkQueue queue, VkCommandPool commandPool, 
 	freeCommandBuffer(commandPool, commandBuffer);
 }
 
-LibGFX::Image VkContext::createImageFromData(const ImageData& imageData, VkCommandPool commandPool, VkImageUsageFlags usage)
+LibGFX::Image VkContext::createImage(const ImageData& imageData, VkCommandPool commandPool, VkImageUsageFlags usage)
 {
 	VkDeviceSize imageSize = imageData.getImageSize();
 
@@ -148,7 +148,7 @@ LibGFX::Image VkContext::createImageFromData(const ImageData& imageData, VkComma
 
 	// Device Local image
 	VkDeviceMemory imageMemory;
-	VkImage image = createImage(
+	VkImage image = createVkImage(
 		m_physicalDevice,
 		m_device,
 		imageData.width,
@@ -775,7 +775,7 @@ uint32_t VkContext::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typ
 	throw std::runtime_error("Failed to find suitable memory type");
 }
 
-VkImage VkContext::createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
+VkImage VkContext::createVkImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
 {
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -823,7 +823,7 @@ LibGFX::DepthBuffer VkContext::createDepthBuffer(VkExtent2D extent, VkFormat for
 
 	// Create depth image
 	VkDeviceMemory depthImageMemory;
-	VkImage depthImage = createImage(
+	VkImage depthImage = createVkImage(
 		m_physicalDevice,
 		m_device,
 		extent.width,
