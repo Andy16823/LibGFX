@@ -9,6 +9,7 @@
 #include "RenderPass.h"
 #include "Pipeline.h"
 #include "Buffer.h"
+#include "Imaging.h"
 
 namespace LibGFX {
 	class VkContext {
@@ -78,7 +79,12 @@ namespace LibGFX {
 		Buffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void updateBuffer(const Buffer& buffer, const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
 		void copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size);
+		void copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height);
 		void destroyBuffer(Buffer& buffer);
+
+		// Image
+		Image createImageFromData(const ImageData& imageData, VkCommandPool commandPool, VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+		void destroyImage(Image& image);
 
 		// Present & Graphics queue access
 		VkResult acquireNextImage(const SwapchainInfo& swapchainInfo, VkSemaphore signalSemaphore, VkFence fence, uint32_t& imageIndex, uint64_t timeout = std::numeric_limits<uint64_t>::max());
@@ -131,7 +137,8 @@ namespace LibGFX {
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkExtent2D chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-		// Depth buffer helpers
+		// Image helpers
+		void transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout);
 		
 
 		GLFWwindow* m_targetWindow;

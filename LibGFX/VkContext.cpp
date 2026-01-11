@@ -16,6 +16,174 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+void VkContext::destroyImage(Image& image)
+{
+	if (image.imageView != VK_NULL_HANDLE) {
+		vkDestroyImageView(m_device, image.imageView, nullptr);
+		image.imageView = VK_NULL_HANDLE;
+	}
+
+	if (image.image != VK_NULL_HANDLE) {
+		vkDestroyImage(m_device, image.image, nullptr);
+		image.image = VK_NULL_HANDLE;
+	}
+
+	if (image.memory != VK_NULL_HANDLE) {
+		vkFreeMemory(m_device, image.memory, nullptr);
+		image.memory = VK_NULL_HANDLE;
+	}
+}
+
+void VkContext::copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height)
+{
+	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool);
+	beginCommandBuffer(commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	VkBufferImageCopy region = {};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = { width, height, 1 };
+
+	vkCmdCopyBufferToImage(
+		commandBuffer,
+		srcBuffer.buffer,
+		dstImage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&region);
+
+	endCommandBuffer(commandBuffer);
+
+	// Submit the command buffer and wait for completion
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit buffer to image copy command buffer");
+	}
+	vkQueueWaitIdle(m_graphicsQueue);
+	freeCommandBuffer(commandPool, commandBuffer);
+}
+
+void VkContext::transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout)
+{
+	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	beginCommandBuffer(commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = srcLayout;
+	barrier.newLayout = dstLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
+
+	if (srcLayout == VK_IMAGE_LAYOUT_UNDEFINED && dstLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (srcLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && dstLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+
+	vkCmdPipelineBarrier(
+		commandBuffer,
+		sourceStage, destinationStage,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier);
+
+	endCommandBuffer(commandBuffer);
+
+	// Submit the command buffer and wait for completion
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit image layout transition command buffer");
+	}
+	vkQueueWaitIdle(queue);
+	
+	freeCommandBuffer(commandPool, commandBuffer);
+}
+
+LibGFX::Image VkContext::createImageFromData(const ImageData& imageData, VkCommandPool commandPool, VkImageUsageFlags usage)
+{
+	VkDeviceSize imageSize = imageData.getImageSize();
+
+	// Staging Buffer
+	Buffer stagingBuffer = createBuffer(
+		imageSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	// Copy image data to staging buffer
+	updateBuffer(stagingBuffer, imageData.pixels, imageSize);
+
+	// Device Local image
+	VkDeviceMemory imageMemory;
+	VkImage image = createImage(
+		m_physicalDevice,
+		m_device,
+		imageData.width,
+		imageData.height,
+		imageData.format,
+		VK_IMAGE_TILING_OPTIMAL,
+		usage,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&imageMemory);
+
+	// Transition image layout and copy data from staging buffer
+	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	// Copy buffer to image
+	copyBufferToImage(commandPool, stagingBuffer, image, imageData.width, imageData.height);
+
+	// Transition image to shader readable layout
+	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	// Clean up staging buffer
+	destroyBuffer(stagingBuffer);
+	// Create image view
+	VkImageView imageView = createImageView(m_device, image, imageData.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
+
+	// Return image struct
+	Image resultImage = {};
+	resultImage.image = image;
+	resultImage.memory = imageMemory;
+	resultImage.imageView = imageView;
+	resultImage.format = imageData.format;
+	resultImage.width = imageData.width;
+	resultImage.height = imageData.height;
+	return resultImage;
+}
+
 void VkContext::copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size)
 {
 	// Allocate a temporary command buffer for the copy operation
