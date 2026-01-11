@@ -4,7 +4,7 @@
 add_library(LibGFX STATIC
     LibGFX.cpp
     LibGFX.h
- "VkContext.h" "VkContext.cpp" "QueueFamilyIndices.h"  "SwapChainSupportDetails.h" "SwapchainInfo.h"  "DepthBuffer.h" "RenderPass.h" "DefaultRenderPass.h" "DefaultRenderPass.cpp" "DescriptorSetLayoutBuilder.h" "DescriptorSetLayoutBuilder.cpp"   "Pipeline.h"  "DescriptorPoolBuilder.h" "DescriptorPoolBuilder.cpp" "Buffer.h"   "DescriptorSetWriter.h" "DescriptorSetWriter.cpp")
+ "VkContext.h" "VkContext.cpp" "QueueFamilyIndices.h"  "SwapChainSupportDetails.h" "SwapchainInfo.h"  "DepthBuffer.h" "RenderPass.h" "DefaultRenderPass.h" "DefaultRenderPass.cpp" "DescriptorSetLayoutBuilder.h" "DescriptorSetLayoutBuilder.cpp"   "Pipeline.h"  "DescriptorPoolBuilder.h" "DescriptorPoolBuilder.cpp" "Buffer.h"   "DescriptorSetWriter.h" "DescriptorSetWriter.cpp" "Image.h")
 
 # GLFW mit der Library linken
 target_link_libraries(LibGFX 
