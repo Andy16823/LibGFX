@@ -19,7 +19,7 @@ namespace LibGFX {
 
 		static VkApplicationInfo defaultAppInfo();
 
-		void initialize(VkApplicationInfo appInfo);
+		void initialize(VkApplicationInfo appInfo, bool enableValidationLayers = true);
 		void dispose();
 
 		// Swapchain functions

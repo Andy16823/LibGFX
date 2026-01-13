@@ -1200,7 +1200,7 @@ bool VkContext::hasRequiredExtensions(const std::vector<const char*>* requiredEx
 	return true;
 }
 
-void VkContext::initialize(VkApplicationInfo appInfo)
+void VkContext::initialize(VkApplicationInfo appInfo, bool enableValidationLayers)
 {
 	std::cout << "Initializing Vulkan Renderer..." << std::endl;
 
@@ -1232,8 +1232,14 @@ void VkContext::initialize(VkApplicationInfo appInfo)
 	createInfo.pApplicationInfo = &appInfo;
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
-	createInfo.enabledLayerCount = 1;
-	createInfo.ppEnabledLayerNames = layers.data();
+	if (enableValidationLayers) {
+		createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+		createInfo.ppEnabledLayerNames = layers.data();
+	}
+	else {
+		createInfo.enabledLayerCount = 0;
+		createInfo.ppEnabledLayerNames = nullptr;
+	}
 
 	if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to initialize Vulkan");
