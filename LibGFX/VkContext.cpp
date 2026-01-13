@@ -1203,33 +1203,33 @@ bool VkContext::hasRequiredExtensions(const std::vector<const char*>* requiredEx
 void VkContext::initialize(VkApplicationInfo appInfo)
 {
 	std::cout << "Initializing Vulkan Renderer..." << std::endl;
-	std::cout << "Creating Validation Layers..." << std::endl;
 
+	// Check for validation layers
+	std::cout << "Creating Validation Layers..." << std::endl;
 	std::vector<const char*> layers;
 	layers.push_back("VK_LAYER_KHRONOS_validation");
 	if (!this->hasRequiredLayers(layers)) {
 		throw std::runtime_error("Required validation layers not available");
 	}
 
-	// Create instance info
-	VkInstanceCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo = &appInfo;
-
-	// Get required extensions
+	// Get required instance extensions from GLFW
 	std::vector<const char*> extensions;
 	uint32_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
-
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	for (size_t i = 0; i < glfwExtensionCount; i++) {
 		extensions.push_back(glfwExtensions[i]);
 	}
 
+	// Check if all required extensions are available
 	if (!this->hasRequiredExtensions(&extensions)) {
 		throw std::runtime_error("Required Vulkan features are not available");
 	}
 
+	// Create the Vulkan Instance
+	VkInstanceCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	createInfo.pApplicationInfo = &appInfo;
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledLayerCount = 1;
@@ -1246,25 +1246,25 @@ void VkContext::initialize(VkApplicationInfo appInfo)
 		throw std::runtime_error("Failed to create Vulkan surface");
 	}
 
-	// Get Physical Device
+	// Select the required device extensions
 	std::cout << "Selecting Physical Device..." << std::endl;
-
 	const std::vector<const char*> deviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
+	// Select the physical device
 	m_physicalDevice = selectPhysicalDevice(deviceExtensions);
 	if (m_physicalDevice == VK_NULL_HANDLE) {
 		throw std::runtime_error("Failed to find a suitable GPU");
 	}
 
+	// Print selected device name
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(m_physicalDevice, &deviceProperties);
 	std::cout << "Selected GPU: " << deviceProperties.deviceName << std::endl;
 
 	// Create Logical Device
 	QueueFamilyIndices indices = getQueueFamilyIndices(m_physicalDevice);
-
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<int> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
 

@@ -125,6 +125,7 @@ namespace LibGFX {
 		VkQueue m_graphicsQueue;
 		VkQueue m_presentQueue;
 
+
 		// Initialization helpers
 		bool hasRequiredLayers(const std::vector<const char*> requiredLayers);
 		bool hasRequiredExtensions(const std::vector<const char*>* requiredExtensions);
@@ -139,8 +140,6 @@ namespace LibGFX {
 
 		// Image helpers
 		void transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout);
-		
-
 		GLFWwindow* m_targetWindow;
 	};
 
