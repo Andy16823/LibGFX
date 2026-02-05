@@ -7,7 +7,7 @@ VkRenderPass LibGFX::Presets::DefaultRenderPass::getRenderPass() const
 	return m_renderPass;
 }
 
-bool LibGFX::Presets::DefaultRenderPass::create(VkDevice device, VkFormat swapchainImageFormat, VkFormat depthFormat)
+bool LibGFX::Presets::DefaultRenderPass::create(VkContext& context, VkFormat swapchainImageFormat, VkFormat depthFormat)
 {
 	// Color attachment
 	VkAttachmentDescription colorAttachment = {};
@@ -83,16 +83,16 @@ bool LibGFX::Presets::DefaultRenderPass::create(VkDevice device, VkFormat swapch
 	renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
 	renderPassInfo.pDependencies = dependencies.data();
 
-	if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
+	if (vkCreateRenderPass(context.getDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create default render pass");
 	}
 	return true;
 }
 
-void LibGFX::Presets::DefaultRenderPass::destroy(VkDevice device)
+void LibGFX::Presets::DefaultRenderPass::destroy(VkContext& context)
 {
 	if (m_renderPass != VK_NULL_HANDLE) {
-		vkDestroyRenderPass(device, m_renderPass, nullptr);
+		vkDestroyRenderPass(context.getDevice(), m_renderPass, nullptr);
 		m_renderPass = VK_NULL_HANDLE;
 	}
 }
