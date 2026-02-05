@@ -13,7 +13,7 @@ namespace LibGFX {
 		Pipeline() = default;
 		virtual ~Pipeline() = default;
 
-		virtual void create(VkContext& context, VkRenderPass renderPass) = 0;
+		virtual void create(VkContext& context) = 0;
 		virtual void destroy(VkContext& context) = 0;
 		virtual VkPipeline getPipeline() const = 0;
 		virtual VkPipelineLayout getPipelineLayout() const = 0;
