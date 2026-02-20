@@ -111,8 +111,10 @@ namespace LibGFX {
 		// Public Helpers
 		bool isPresentModeAvailable(VkPresentModeKHR presentMode);
 		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
+		VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
 		static uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		static VkImage createVkImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory);
+		VkImage createVkImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory);
 		static VkViewport createViewport(float x, float y, VkExtent2D extent, float minDepth = 0.0f, float maxDepth = 1.0f);
 		static VkRect2D createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent);
 		VkFormat findSuitableDepthFormat();

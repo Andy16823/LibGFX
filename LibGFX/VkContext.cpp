@@ -16,6 +16,16 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
+VkImageView VkContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
+{
+	return createImageView(m_device, image, format, aspectFlags, viewType);
+}
+
+VkImage VkContext::createVkImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
+{
+	return createVkImage(m_physicalDevice, m_device, width, height, format, tiling, usage, properties, imageMemory);
+}
+
 void VkContext::destroyImage(Image& image)
 {
 	if (image.imageView != VK_NULL_HANDLE) {
