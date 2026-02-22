@@ -81,6 +81,7 @@ namespace LibGFX {
 		void copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size);
 		void copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height);
 		void resizeBuffer(VkCommandPool commandPool, Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		void recreateBuffer(Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void destroyBuffer(Buffer& buffer);
 
 		// Image

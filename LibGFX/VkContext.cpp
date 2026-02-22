@@ -238,8 +238,17 @@ void VkContext::copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, c
 
 void VkContext::resizeBuffer(VkCommandPool commandPool, Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
+	vkDeviceWaitIdle(m_device);
 	Buffer newBuffer = createBuffer(newSize, usage, properties);
 	copyBuffer(commandPool, buffer, newBuffer, std::min(buffer.size, newSize));
+	destroyBuffer(buffer);
+	buffer = newBuffer;
+}
+
+void VkContext::recreateBuffer(Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+{
+	vkDeviceWaitIdle(m_device);
+	Buffer newBuffer = createBuffer(newSize, usage, properties);
 	destroyBuffer(buffer);
 	buffer = newBuffer;
 }
