@@ -236,6 +236,14 @@ void VkContext::copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, c
 	freeCommandBuffer(commandPool, commandBuffer);
 }
 
+void VkContext::resizeBuffer(VkCommandPool commandPool, Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+{
+	Buffer newBuffer = createBuffer(newSize, usage, properties);
+	copyBuffer(commandPool, buffer, newBuffer, std::min(buffer.size, newSize));
+	destroyBuffer(buffer);
+	buffer = newBuffer;
+}
+
 void VkContext::freeDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSet& descriptorSet)
 {
 	vkFreeDescriptorSets(m_device, descriptorPool, 1, &descriptorSet);
