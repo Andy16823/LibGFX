@@ -104,4 +104,27 @@ namespace LibGFX {
 		uint32_t width = 0;
 		uint32_t height = 0;
 	};
+
+	struct CubemapData {
+		const void* pixels[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+		uint32_t width = 0;
+		uint32_t height = 0;
+		VkFormat format = VK_FORMAT_UNDEFINED;
+
+		VkDeviceSize getImageSize() const {
+			VkDeviceSize vkWidth = static_cast<VkDeviceSize>(width);
+			VkDeviceSize vkHeight = static_cast<VkDeviceSize>(height);
+			uint32_t bytesPerPixel = getBytesPerPixel(format);
+			return vkWidth * vkHeight * bytesPerPixel;
+		}
+	};
+
+	struct Cubemap {
+		VkImage image = VK_NULL_HANDLE;
+		VkDeviceMemory memory = VK_NULL_HANDLE;
+		VkImageView imageView = VK_NULL_HANDLE;
+		VkFormat format = VK_FORMAT_UNDEFINED;
+		uint32_t width = 0;
+		uint32_t height = 0;
+	};
 }

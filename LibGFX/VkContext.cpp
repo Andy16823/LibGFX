@@ -16,14 +16,14 @@ LibGFX::VkContext::~VkContext()
 	m_targetWindow = nullptr;
 }
 
-VkImageView VkContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
+VkImageView VkContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/, uint32_t layers /*= 1*/)
 {
-	return createImageView(m_device, image, format, aspectFlags, viewType);
+	return createImageView(m_device, image, format, aspectFlags, viewType, layers);
 }
 
-VkImage VkContext::createVkImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
+VkImage VkContext::createVkImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory, uint32_t layers /* = 1*/, VkImageCreateFlags flags /*= 0*/)
 {
-	return createVkImage(m_physicalDevice, m_device, width, height, format, tiling, usage, properties, imageMemory);
+	return createVkImage(m_physicalDevice, m_device, width, height, format, tiling, usage, properties, imageMemory, layers, flags);
 }
 
 void VkContext::destroyImage(Image& image)
@@ -192,6 +192,63 @@ LibGFX::Image VkContext::createImage(const ImageData& imageData, VkCommandPool c
 	resultImage.width = imageData.width;
 	resultImage.height = imageData.height;
 	return resultImage;
+}
+
+LibGFX::Cubemap VkContext::createCubemap(const CubemapData& cubemapData, VkCommandPool commandPool, VkImageUsageFlags usage /*= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT*/)
+{
+	VkDeviceSize layerSize = cubemapData.getImageSize();
+	VkDeviceSize imageSize = layerSize * 6;
+
+	// Staging Buffer
+	Buffer stagingBuffer = createBuffer(
+		imageSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	// Copy cubemap data to staging buffer
+	for (int i = 0; i < 6; ++i) {
+		updateBuffer(stagingBuffer, cubemapData.pixels[i], layerSize, layerSize * i);
+	}
+
+	// Device Local image
+	VkDeviceMemory imageMemory;
+	VkImage image = createVkImage(
+		m_physicalDevice,
+		m_device,
+		cubemapData.width,
+		cubemapData.height,
+		cubemapData.format,
+		VK_IMAGE_TILING_OPTIMAL,
+		usage,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&imageMemory,
+		6,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+
+	// Transition image layout and copy data from staging buffer
+	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	// Copy buffer to image
+	copyBufferToImage(commandPool, stagingBuffer, image, cubemapData.width, cubemapData.height);
+
+	// Transition image to shader readable layout
+	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	// Clean up staging buffer
+	destroyBuffer(stagingBuffer);
+
+	// Create image view
+	VkImageView imageView = createImageView(m_device, image, cubemapData.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE, 6);
+
+	// Return cubemap struct
+	Cubemap resultCubemap = {};
+	resultCubemap.image = image;
+	resultCubemap.memory = imageMemory;
+	resultCubemap.imageView = imageView;
+	resultCubemap.format = cubemapData.format;
+	resultCubemap.width = cubemapData.width;
+	resultCubemap.height = cubemapData.height;
+	return resultCubemap;
 }
 
 void VkContext::copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size)
@@ -802,7 +859,7 @@ uint32_t VkContext::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typ
 	throw std::runtime_error("Failed to find suitable memory type");
 }
 
-VkImage VkContext::createVkImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory)
+VkImage VkContext::createVkImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory, uint32_t layers /*= 1*/, VkImageCreateFlags flags /*= 0*/)
 {
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -811,13 +868,14 @@ VkImage VkContext::createVkImage(VkPhysicalDevice physicalDevice, VkDevice devic
 	imageInfo.extent.height = height;
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
+	imageInfo.arrayLayers = layers;
 	imageInfo.format = format;
 	imageInfo.tiling = tiling;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.usage = usage;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	imageInfo.flags = flags;
 
 	VkImage image;
 	if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
@@ -885,7 +943,7 @@ void VkContext::destroySwapChain(SwapchainInfo& swapchainInfo)
 	vkDestroySwapchainKHR(m_device, swapchainInfo.swapchain, nullptr);
 }
 
-VkImageView VkContext::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/)
+VkImageView VkContext::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType /*= VK_IMAGE_VIEW_TYPE_2D*/, uint32_t layers /*= 1*/)
 {
 	VkImageViewCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -901,7 +959,7 @@ VkImageView VkContext::createImageView(VkDevice device, VkImage image, VkFormat 
 	createInfo.subresourceRange.baseMipLevel = 0;
 	createInfo.subresourceRange.levelCount = 1;
 	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
+	createInfo.subresourceRange.layerCount = layers;
 
 	VkImageView imageView;
 	if (vkCreateImageView(device, &createInfo, nullptr, &imageView) != VK_SUCCESS) {

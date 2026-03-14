@@ -86,6 +86,7 @@ namespace LibGFX {
 
 		// Image
 		Image createImage(const ImageData& imageData, VkCommandPool commandPool, VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+		Cubemap createCubemap(const CubemapData& cubemapData, VkCommandPool commandPool, VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 		void destroyImage(Image& image);
 
 		// Present & Graphics queue access
@@ -112,11 +113,11 @@ namespace LibGFX {
 
 		// Public Helpers
 		bool isPresentModeAvailable(VkPresentModeKHR presentMode);
-		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
-		VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
+		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, uint32_t layers = 1);
+		VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, uint32_t layers = 1);
 		static uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
-		static VkImage createVkImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory);
-		VkImage createVkImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory);
+		static VkImage createVkImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory, uint32_t layers = 1, VkImageCreateFlags flags = 0);
+		VkImage createVkImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory* imageMemory, uint32_t layers = 1, VkImageCreateFlags flags = 0);
 		static VkViewport createViewport(float x, float y, VkExtent2D extent, float minDepth = 0.0f, float maxDepth = 1.0f);
 		static VkRect2D createScissorRect(int32_t offsetX, int32_t offsetY, VkExtent2D extent);
 		VkFormat findSuitableDepthFormat();
