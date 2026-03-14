@@ -83,7 +83,7 @@ void VkContext::copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBu
 	freeCommandBuffer(commandPool, commandBuffer);
 }
 
-void VkContext::transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout)
+void VkContext::transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout, uint32_t layerCount /*= 1*/)
 {
 	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	beginCommandBuffer(commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -99,7 +99,7 @@ void VkContext::transitionImageLayout(VkQueue queue, VkCommandPool commandPool, 
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
 	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.layerCount = layerCount;
 
 	VkPipelineStageFlags sourceStage;
 	VkPipelineStageFlags destinationStage;
@@ -226,13 +226,13 @@ LibGFX::Cubemap VkContext::createCubemap(const CubemapData& cubemapData, VkComma
 		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
 
 	// Transition image layout and copy data from staging buffer
-	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 6);
 
 	// Copy buffer to image
 	copyBufferToImage(commandPool, stagingBuffer, image, cubemapData.width, cubemapData.height);
 
 	// Transition image to shader readable layout
-	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 6);
 
 	// Clean up staging buffer
 	destroyBuffer(stagingBuffer);

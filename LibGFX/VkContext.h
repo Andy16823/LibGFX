@@ -144,7 +144,7 @@ namespace LibGFX {
 		VkExtent2D chooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		// Image helpers
-		void transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout);
+		void transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout, uint32_t layerCount = 1);
 		GLFWwindow* m_targetWindow;
 	};
 
