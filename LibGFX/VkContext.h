@@ -89,6 +89,7 @@ namespace LibGFX {
 		Image createImage(const ImageData& imageData, VkCommandPool commandPool, VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 		Cubemap createCubemap(const CubemapData& cubemapData, VkCommandPool commandPool, VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 		void destroyImage(Image& image);
+		void destroyCubemap(Cubemap& cubemap);
 
 		// Present & Graphics queue access
 		VkResult acquireNextImage(const SwapchainInfo& swapchainInfo, VkSemaphore signalSemaphore, VkFence fence, uint32_t& imageIndex, uint64_t timeout = std::numeric_limits<uint64_t>::max());

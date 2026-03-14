@@ -44,6 +44,24 @@ void VkContext::destroyImage(Image& image)
 	}
 }
 
+void VkContext::destroyCubemap(Cubemap& cubemap)
+{
+	if (cubemap.imageView != VK_NULL_HANDLE) {
+		vkDestroyImageView(m_device, cubemap.imageView, nullptr);
+		cubemap.imageView = VK_NULL_HANDLE;
+	}
+
+	if (cubemap.image != VK_NULL_HANDLE) {
+		vkDestroyImage(m_device, cubemap.image, nullptr);
+		cubemap.image = VK_NULL_HANDLE;
+	}
+
+	if (cubemap.memory != VK_NULL_HANDLE) {
+		vkFreeMemory(m_device, cubemap.memory, nullptr);
+		cubemap.memory = VK_NULL_HANDLE;
+	}
+}
+
 void VkContext::copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height)
 {
 	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool);
