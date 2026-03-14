@@ -83,6 +83,47 @@ void VkContext::copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBu
 	freeCommandBuffer(commandPool, commandBuffer);
 }
 
+void VkContext::copyBufferToImageArray(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height, uint32_t layerCount, VkDeviceSize layerSize)
+{
+	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool);
+	beginCommandBuffer(commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	std::vector<VkBufferImageCopy> regions(layerCount);
+	for (uint32_t i = 0; i < layerCount; ++i) {
+		regions[i].bufferOffset = i * layerSize;
+		regions[i].bufferRowLength = 0;
+		regions[i].bufferImageHeight = 0;
+		regions[i].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		regions[i].imageSubresource.mipLevel = 0;
+		regions[i].imageSubresource.baseArrayLayer = i;
+		regions[i].imageSubresource.layerCount = 1;
+		regions[i].imageOffset = { 0, 0, 0 };
+		regions[i].imageExtent = { width, height, 1 };
+	}
+
+	vkCmdCopyBufferToImage(
+		commandBuffer,
+		srcBuffer.buffer,
+		dstImage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		static_cast<uint32_t>(regions.size()),
+		regions.data());
+
+	endCommandBuffer(commandBuffer);
+
+	// Submit the command buffer and wait for completion
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit buffer to image copy command buffer");
+	}
+	vkQueueWaitIdle(m_graphicsQueue);
+	freeCommandBuffer(commandPool, commandBuffer);
+}
+
 void VkContext::transitionImageLayout(VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout srcLayout, VkImageLayout dstLayout, uint32_t layerCount /*= 1*/)
 {
 	VkCommandBuffer commandBuffer = allocateCommandBuffer(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
@@ -229,7 +270,8 @@ LibGFX::Cubemap VkContext::createCubemap(const CubemapData& cubemapData, VkComma
 	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 6);
 
 	// Copy buffer to image
-	copyBufferToImage(commandPool, stagingBuffer, image, cubemapData.width, cubemapData.height);
+	VkDeviceSize layerSizeBytes = cubemapData.getImageSize();
+	copyBufferToImageArray(commandPool, stagingBuffer, image, cubemapData.width, cubemapData.height, 6, layerSizeBytes);
 
 	// Transition image to shader readable layout
 	transitionImageLayout(m_graphicsQueue, commandPool, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 6);

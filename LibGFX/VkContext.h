@@ -80,6 +80,7 @@ namespace LibGFX {
 		void updateBuffer(const Buffer& buffer, const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
 		void copyBuffer(VkCommandPool commandPool, const Buffer& srcBuffer, const Buffer& dstBuffer, VkDeviceSize size);
 		void copyBufferToImage(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height);
+		void copyBufferToImageArray(VkCommandPool commandPool, const Buffer& srcBuffer, VkImage dstImage, uint32_t width, uint32_t height, uint32_t layerCount, VkDeviceSize layerSize);
 		void resizeBuffer(VkCommandPool commandPool, Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void recreateBuffer(Buffer& buffer, VkDeviceSize newSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void destroyBuffer(Buffer& buffer);
