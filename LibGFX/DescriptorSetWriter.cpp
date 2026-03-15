@@ -29,8 +29,9 @@ LibGFX::DescriptorSetWriter& LibGFX::DescriptorSetWriter::write(VkContext& conte
 	writeInfo.dstArrayElement = dstArrayElement;
 	writeInfo.descriptorCount = 1;
 	writeInfo.descriptorType = descriptorType;
-	writeInfo.pBufferInfo = m_bufferInfos.data();
-	writeInfo.pImageInfo = m_imageInfos.data();
+
+	writeInfo.pBufferInfo = m_bufferInfos.empty() ? nullptr : m_bufferInfos.data();
+	writeInfo.pImageInfo = m_imageInfos.empty() ? nullptr : m_imageInfos.data();
 
 	vkUpdateDescriptorSets(context.getDevice(), 1, &writeInfo, 0, nullptr);
 	return *this;
