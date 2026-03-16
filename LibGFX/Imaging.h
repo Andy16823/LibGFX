@@ -83,7 +83,7 @@ namespace LibGFX {
 	}
 
 	struct ImageData {
-		const void* pixels = nullptr;
+		std::vector<uint8_t> pixels;
 		uint32_t width = 0;
 		uint32_t height = 0;
 		VkFormat format = VK_FORMAT_UNDEFINED;

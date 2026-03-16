@@ -213,7 +213,7 @@ LibGFX::Image VkContext::createImage(const ImageData& imageData, VkCommandPool c
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	// Copy image data to staging buffer
-	updateBuffer(stagingBuffer, imageData.pixels, imageSize);
+	updateBuffer(stagingBuffer, imageData.pixels.data(), imageSize);
 
 	// Device Local image
 	VkDeviceMemory imageMemory;
