@@ -266,7 +266,7 @@ LibGFX::Cubemap VkContext::createCubemap(const CubemapData& cubemapData, VkComma
 
 	// Copy cubemap data to staging buffer
 	for (int i = 0; i < 6; ++i) {
-		updateBuffer(stagingBuffer, cubemapData.pixels[i], layerSize, layerSize * i);
+		updateBuffer(stagingBuffer, cubemapData.pixels[i].data(), layerSize, layerSize * i);
 	}
 
 	// Device Local image

@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <cassert>
 #include <vector>
+#include <array>
 
 namespace LibGFX {
 
@@ -107,7 +108,7 @@ namespace LibGFX {
 	};
 
 	struct CubemapData {
-		const void* pixels[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+		std::array<std::vector<uint8_t>, 6> pixels;
 		uint32_t width = 0;
 		uint32_t height = 0;
 		VkFormat format = VK_FORMAT_UNDEFINED;
