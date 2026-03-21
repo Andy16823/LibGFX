@@ -18,6 +18,12 @@ LibGFX::DescriptorPoolBuilder& LibGFX::DescriptorPoolBuilder::setMaxSets(uint32_
 	return *this;
 }
 
+LibGFX::DescriptorPoolBuilder& LibGFX::DescriptorPoolBuilder::setFlags(VkDescriptorPoolCreateFlags flags)
+{
+	m_flags = flags;
+	return *this;
+}
+
 VkDescriptorPool LibGFX::DescriptorPoolBuilder::build(VkContext& context)
 {
 	VkDescriptorPoolCreateInfo poolCreateInfo = {};
@@ -25,6 +31,7 @@ VkDescriptorPool LibGFX::DescriptorPoolBuilder::build(VkContext& context)
 	poolCreateInfo.poolSizeCount = static_cast<uint32_t>(m_poolSizes.size());
 	poolCreateInfo.pPoolSizes = m_poolSizes.data();
 	poolCreateInfo.maxSets = m_maxSets;
+	poolCreateInfo.flags = m_flags;
 
 	VkDescriptorPool descriptorPool;
 	if (vkCreateDescriptorPool(context.getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
