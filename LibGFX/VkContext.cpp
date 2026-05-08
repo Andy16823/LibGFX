@@ -452,16 +452,14 @@ void VkContext::waitIdle()
 	vkDeviceWaitIdle(m_device);
 }
 
-void VkContext::queuePresent(const VkPresentInfoKHR& presentInfo)
+VkResult VkContext::queuePresent(const VkPresentInfoKHR& presentInfo)
 {
-	this->queuePresent(m_presentQueue, presentInfo);
+	return this->queuePresent(m_presentQueue, presentInfo);
 }
 
-void VkContext::queuePresent(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo)
+VkResult VkContext::queuePresent(VkQueue presentQueue, const VkPresentInfoKHR& presentInfo)
 {
-	if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to present image");
-	}
+	return vkQueuePresentKHR(presentQueue, &presentInfo);
 }
 
 void VkContext::submitCommandBuffers(const std::vector<VkSubmitInfo>& submitInfos, VkFence fence /*= VK_NULL_HANDLE*/)
