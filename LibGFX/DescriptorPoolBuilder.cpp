@@ -44,4 +44,5 @@ void LibGFX::DescriptorPoolBuilder::clear()
 {
 	m_poolSizes.clear();
 	m_maxSets = 0;
+	m_flags = 0;
 }
