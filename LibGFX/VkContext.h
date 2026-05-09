@@ -106,6 +106,7 @@ namespace LibGFX {
 		void waitIdle();
 
 		// Getters
+		GLFWwindow* getTargetWindow() const { return m_targetWindow; }
 		VkInstance getInstance() const { return m_instance; }
 		VkSurfaceKHR getSurface() const { return m_surface; }
 		VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
