@@ -8,7 +8,7 @@
 namespace LibGFX {
 	class GFX {
 	public:
-		static GLFWwindow* createWindow(int width, int height, const char* title);
+		static GLFWwindow* createWindow(int width, int height, const char* title, bool fullscreen = false);
 		static std::vector<char> readFile(const std::string& filename);
 		static std::unique_ptr<VkContext> createContext(GLFWwindow* targetWindow) {
 			return std::make_unique<VkContext>(targetWindow);
