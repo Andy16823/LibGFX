@@ -7,11 +7,11 @@
 using namespace std;
 using namespace LibGFX;
 
-GLFWwindow* GFX::createWindow(int width, int height, const char* title, bool fullscreen)
+GLFWwindow* GFX::createWindow(int width, int height, const char* title, bool fullscreen, bool resizable)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
 
 	GLFWmonitor* monitor = fullscreen ? glfwGetPrimaryMonitor() : nullptr;
 
