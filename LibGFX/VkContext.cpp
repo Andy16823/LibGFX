@@ -3,6 +3,7 @@
 #include <iostream>
 #include <array>
 #include <set>
+#include <cstring>
 
 using namespace LibGFX;
 
